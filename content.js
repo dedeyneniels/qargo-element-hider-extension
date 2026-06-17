@@ -1,18 +1,14 @@
-async function getBlockedList() {
-    // 1. Haal centrale lijst op
-    const response = await fetch('dedeyneniels/qargo-element-hider-extension/filters.json');
-    const remoteList = await response.json();
-    // 2. Haal lokale lijst op
-    return new Promise((resolve) => {
-        chrome.storage.sync.get(['blockedList'], (data) => {
-            const localList = data.blockedList || [];
-            resolve([...new Set([...remoteList, ...localList])]); // Combineer en verwijder dubbelen
-        });
-    });
+async function getFilters() {
+    try {
+        const response = await fetch('https://raw.githubusercontent.com/dedeyneniels/qargo-element-hider-extension/refs/heads/main/filters.json');
+        return await response.json();
+    } catch (e) {
+        return []; // Fallback als fetch mislukt
+    }
 }
 
 async function verbergElementen() {
-    const teksten = await getBlockedList();
+    const teksten = await getFilters();
     document.querySelectorAll('.ant-radio-button-wrapper').forEach(label => {
         const spans = label.querySelectorAll(':scope > span');
         if (spans.length > 0) {
@@ -25,3 +21,5 @@ async function verbergElementen() {
 const observer = new MutationObserver(verbergElementen);
 observer.observe(document.body, { childList: true, subtree: true });
 verbergElementen();
+
+chrome.storage.onChanged.addListener(verbergElementen);
