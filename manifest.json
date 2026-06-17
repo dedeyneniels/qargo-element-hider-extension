@@ -1,12 +1,24 @@
 {
   "manifest_version": 3,
   "name": "Qargo Filter System",
-  "version": "1.0",
-  "permissions": ["storage"],
-  "host_permissions": ["https://raw.githubusercontent.com/*"],
-  "action": { "default_popup": "popup.html" },
-  "content_scripts": [{ 
-    "matches": ["https://app.qargo.com/*"], 
-    "js": ["content.js"] 
-  }]
+  "version": "1.0.0",
+
+  "permissions": [
+    "storage"
+  ],
+
+  "host_permissions": [
+    "https://raw.githubusercontent.com/*"
+  ],
+
+  "action": {
+    "default_popup": "popup.html"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["https://app.qargo.com/*"],
+      "js": ["content.js"]
+    }
+  ]
 }

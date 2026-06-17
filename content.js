@@ -1,23 +1,41 @@
-function applyFilters() {
-    chrome.storage.sync.get(['blockedList'], (data) => {
-        const blocked = data.blockedList || [];
-        const labels = document.querySelectorAll('.ant-radio-button-wrapper');
-        
-        labels.forEach(label => {
-            const text = label.innerText.trim();
-            // Als de tekst in de blockedList staat, verberg hem
-            label.style.display = blocked.includes(text) ? 'none' : '';
-        });
+async function getConfig() {
+    const response = await fetch(
+        "https://raw.githubusercontent.com/dedeyneniels/qargo-element-hider-extension/main/config.json",
+        { cache: "no-store" }
+    );
+
+    return await response.json();
+}
+
+async function applyFilters() {
+
+    const config = await getConfig();
+
+    chrome.storage.sync.get(["blockedList"], (data) => {
+
+        const blockedList = data.blockedList || [];
+
+        document
+            .querySelectorAll(config.selector)
+            .forEach(tab => {
+
+                const label = tab.textContent.trim();
+
+                tab.style.display =
+                    blockedList.includes(label)
+                        ? "none"
+                        : "";
+            });
     });
 }
 
-// Observer voor dynamische pagina's
-const observer = new MutationObserver(applyFilters);
-observer.observe(document.body, { childList: true, subtree: true });
+applyFilters();
 
-// Luister naar wijzigingen in de storage
-chrome.storage.onChanged.addListener((changes) => {
-    if (changes.blockedList) applyFilters();
+const observer = new MutationObserver(() => {
+    applyFilters();
 });
 
-applyFilters();
+observer.observe(document.body, {
+    childList: true,
+    subtree: true
+});

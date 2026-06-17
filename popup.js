@@ -1,30 +1,45 @@
-document.addEventListener('DOMContentLoaded', async () => {
-    const container = document.getElementById('filterContainer');
-    const url = 'https://raw.githubusercontent.com/dedeyneniels/qargo-element-hider-extension/refs/heads/main/filters.json';
-    
-    // Ophalen van data
-    const response = await fetch(url, { cache: "no-store" });
-    const masterList = await response.json();
+document.addEventListener("DOMContentLoaded", async () => {
 
-    chrome.storage.sync.get(['blockedList'], (data) => {
-        const savedList = data.blockedList || [];
-        
-        masterList.forEach((option) => {
-            const div = document.createElement('div');
-            div.className = 'filter-item';
-            const checked = savedList.includes(option) ? 'checked' : '';
-            div.innerHTML = `<input type="checkbox" value="${option}" ${checked}> <label>${option}</label>`;
-            container.appendChild(div);
+    const container = document.getElementById("filterContainer");
+
+    const response = await fetch(
+        "https://raw.githubusercontent.com/dedeyneniels/qargo-element-hider-extension/main/filters.json",
+        { cache: "no-store" }
+    );
+
+    const filters = await response.json();
+
+    chrome.storage.sync.get(["blockedList"], (data) => {
+
+        const blockedList = data.blockedList || [];
+
+        filters.forEach(filter => {
+
+            const row = document.createElement("div");
+            row.className = "filter-item";
+
+            row.innerHTML = `
+                <label>
+                    <input
+                        type="checkbox"
+                        value="${filter}"
+                        ${blockedList.includes(filter) ? "checked" : ""}
+                    >
+                    ${filter}
+                </label>
+            `;
+
+            container.appendChild(row);
         });
 
-        // Event listener op de container (Event Delegation)
-        container.addEventListener('change', (e) => {
-            if (e.target.tagName === 'INPUT') {
-                const allChecked = Array.from(document.querySelectorAll('input:checked')).map(i => i.value);
-                chrome.storage.sync.set({ blockedList: allChecked }, () => {
-                    console.log('Opgeslagen:', allChecked);
-                });
-            }
+        container.addEventListener("change", () => {
+
+            const selected = [...document.querySelectorAll("input:checked")]
+                .map(x => x.value);
+
+            chrome.storage.sync.set({
+                blockedList: selected
+            });
         });
     });
 });
