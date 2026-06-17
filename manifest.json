@@ -3,6 +3,10 @@
   "name": "Element Hider",
   "version": "1.0",
   "permissions": ["storage"],
+  "host_permissions": ["https://raw.githubusercontent.com/*"],
   "action": { "default_popup": "popup.html" },
-  "content_scripts": [{ "matches": ["https://app.qargo.com/*"], "js": ["content.js"] }]
+  "content_scripts": [{ 
+    "matches": ["https://app.qargo.com/*"], 
+    "js": ["content.js"] 
+  }]
 }
