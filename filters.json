@@ -1,5 +1,6 @@
 [
-  "Blocked",
   "To plan",
-  "Planned"
+  "Planned",
+  "In transit",
+  "Delivered"
 ]

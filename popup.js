@@ -1,54 +1,32 @@
 document.addEventListener('DOMContentLoaded', async () => {
+    const app = document.getElementById('app');
+    const baseUrl = 'https://raw.githubusercontent.com/dedeyneniels/qargo-element-hider-extension/refs/heads/main/';
+
+    // Haal HTML en JSON op
+    const [htmlRes, filtersRes] = await Promise.all([
+        fetch(baseUrl + 'popup_content.html', { cache: "no-cache" }),
+        fetch(baseUrl + 'filters.json', { cache: "no-cache" })
+    ]);
+
+    app.innerHTML = await htmlRes.text();
+    const masterList = await filtersRes.json();
     const container = document.getElementById('filterContainer');
-    // Jouw specifieke URL naar de JSON
-    const url = 'https://raw.githubusercontent.com/dedeyneniels/qargo-element-hider-extension/refs/heads/main/filters.json';
-    
-    // 1. Maak de container leeg om duplicaten te voorkomen
-    container.innerHTML = ''; 
 
-    // 2. Haal de lijst op van GitHub
-    let filters = [];
-    try {
-        const response = await fetch(url, { cache: "no-store" }); // "no-store" dwingt de browser om verse data te halen
-        filters = await response.json();
-    } catch (e) {
-        console.error("Kon filters niet ophalen, gebruik fallback:", e);
-        filters = ["To plan", "Planned"]; // Fallback als GitHub niet bereikbaar is
-    }
-
-    // 3. Genereer de HTML voor alle opties uit de JSON
-    filters.forEach((option, index) => {
-        const div = document.createElement('div');
-        div.className = 'filter-item';
-        
-        const id = `c${index}`;
-        div.innerHTML = `
-            <input type="checkbox" value="${option}" id="${id}">
-            <label for="${id}">${option}</label>
-        `;
-        container.appendChild(div);
-    });
-
-    // 4. Laad de opgeslagen status uit de lokale Chrome opslag
-    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
     chrome.storage.sync.get(['blockedList'], (data) => {
-        const list = data.blockedList || [];
-        checkboxes.forEach(cb => {
-            if (list.includes(cb.value)) {
-                cb.checked = true;
-            }
+        const savedList = data.blockedList || [];
+        masterList.forEach((option, index) => {
+            const checked = savedList.includes(option) ? 'checked' : '';
+            container.innerHTML += `
+                <div class="filter-item">
+                    <input type="checkbox" value="${option}" id="c${index}" ${checked}>
+                    <label for="c${index}">${option}</label>
+                </div>`;
         });
-    });
-
-    // 5. Sla wijzigingen direct op wanneer de gebruiker klikt
-    checkboxes.forEach(cb => {
-        cb.addEventListener('change', () => {
-            const checked = Array.from(checkboxes)
-                                 .filter(i => i.checked)
-                                 .map(i => i.value);
-            
-            chrome.storage.sync.set({ blockedList: checked }, () => {
-                console.log('Filters opgeslagen:', checked);
+        
+        document.querySelectorAll('input').forEach(cb => {
+            cb.addEventListener('change', () => {
+                const checked = Array.from(document.querySelectorAll('input:checked')).map(i => i.value);
+                chrome.storage.sync.set({ blockedList: checked });
             });
         });
     });
