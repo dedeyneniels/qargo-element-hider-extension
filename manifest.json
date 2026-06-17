@@ -17,8 +17,12 @@
 
   "content_scripts": [
     {
-      "matches": ["https://app.qargo.com/*"],
-      "js": ["content.js"]
+      "matches": [
+        "https://app.qargo.com/*"
+      ],
+      "js": [
+        "content.js"
+      ]
     }
   ]
 }

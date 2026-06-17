@@ -1,41 +1,117 @@
-async function getConfig() {
-    const response = await fetch(
-        "https://raw.githubusercontent.com/dedeyneniels/qargo-element-hider-extension/main/config.json",
-        { cache: "no-store" }
-    );
+const CONFIG_URL =
+"https://raw.githubusercontent.com/dedeyneniels/qargo-element-hider-extension/main/config.json";
 
-    return await response.json();
+const STYLES_URL =
+"https://raw.githubusercontent.com/dedeyneniels/qargo-element-hider-extension/main/styles.json";
+
+let configCache = null;
+let stylesCache = null;
+
+async function loadConfig() {
+
+    try {
+
+        const response =
+            await fetch(CONFIG_URL,{
+                cache:"no-store"
+            });
+
+        configCache =
+            await response.json();
+
+    } catch(e){
+
+        console.error(
+            "config.json fout",
+            e
+        );
+    }
 }
 
-async function applyFilters() {
+async function loadStyles() {
 
-    const config = await getConfig();
+    try {
 
-    chrome.storage.sync.get(["blockedList"], (data) => {
+        const response =
+            await fetch(STYLES_URL,{
+                cache:"no-store"
+            });
 
-        const blockedList = data.blockedList || [];
+        stylesCache =
+            await response.json();
+
+    } catch(e){
+
+        console.error(
+            "styles.json fout",
+            e
+        );
+    }
+}
+
+function applyCustomStyles() {
+
+    if(!stylesCache) return;
+
+    stylesCache.forEach(rule=>{
 
         document
-            .querySelectorAll(config.selector)
-            .forEach(tab => {
+            .querySelectorAll(rule.selector)
+            .forEach(element=>{
 
-                const label = tab.textContent.trim();
-
-                tab.style.display =
-                    blockedList.includes(label)
-                        ? "none"
-                        : "";
+                Object.assign(
+                    element.style,
+                    rule.style
+                );
             });
     });
 }
 
-applyFilters();
+function applyFilters() {
 
-const observer = new MutationObserver(() => {
+    if(!configCache) return;
+
+    chrome.storage.sync.get(
+        ["blockedList"],
+        (data)=>{
+
+            const blockedList =
+                data.blockedList || [];
+
+            document
+                .querySelectorAll(
+                    configCache.tabSelector
+                )
+                .forEach(tab=>{
+
+                    const text =
+                        tab.textContent.trim();
+
+                    if(
+                        blockedList.includes(text)
+                    ){
+                        tab.style.display =
+                            "none";
+                    }else{
+                        tab.style.display =
+                            "";
+                    }
+                });
+        }
+    );
+}
+
+async function refresh() {
+
+    await loadConfig();
+
+    await loadStyles();
+
     applyFilters();
-});
 
-observer.observe(document.body, {
-    childList: true,
-    subtree: true
-});
+    applyCustomStyles();
+}
+
+refresh();
+
+setInterval(refresh,2000);

@@ -1,0 +1,15 @@
+[
+  {
+    "selector": ".some-banner",
+    "style": {
+      "display": "none"
+    }
+  },
+  {
+    "selector": ".warning-box",
+    "style": {
+      "background": "#00aa00",
+      "color": "white"
+    }
+  }
+]
