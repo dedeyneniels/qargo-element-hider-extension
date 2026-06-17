@@ -4,5 +4,11 @@
   "Planned",
   "In transit",
   "Delivered",
-  "Cancelled"
+  "Cancelled",
+  "Collect/annouce",
+  "Deliver/annouce",
+  "EXP followup",
+  "IMP followup",
+  "Incidents",
+  "Last created by"
 ]
